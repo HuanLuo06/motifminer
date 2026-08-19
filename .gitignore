@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Generated results
+demo_results/
+results/
+*_results/
+
+# Large biological files
+*.aln
+*.a3m
+*.sto
+*.hmmpress
+blastdb/
+databases/
+
+# Operating system
+.DS_Store
+
+# Editors
+.vscode/
+.idea/

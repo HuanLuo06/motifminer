@@ -73,7 +73,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--sites", required=True, help="Binding-site CSV")
     run.add_argument("--output", required=True, help="Output directory")
     run.add_argument("--email", required=True, help="Email sent to NCBI with E-utilities requests")
-    run.add_argument("--database", default="nr_clustered")
+    run.add_argument("--database", default="nr")
     run.add_argument("--max-hits", type=int, default=5000)
     run.add_argument("--evalue", type=float, default=1e-5)
     run.add_argument("--min-query-coverage", type=float, default=0.70)

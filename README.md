@@ -28,6 +28,26 @@ python -m motifminer learn \
 The command writes `conservation.tsv` for inspection and
 `conservation.json` for downstream software and the future web interface.
 
+## Fully automatic workflow
+
+With NCBI BLAST+ and MAFFT installed, MotifMiner can submit a remote
+ClusteredNR search, filter hits, retrieve complete protein sequences from NCBI,
+align them, and calculate binding-site conservation:
+
+```bash
+motifminer run \
+  --reference reference.fasta \
+  --sites binding_sites.csv \
+  --email you@example.org \
+  --threads 8 \
+  --output results
+```
+
+The stages are resumable. Existing BLAST, homolog FASTA, and alignment files in
+the output directory are reused unless `--force` is supplied. NCBI remote
+services are appropriate for occasional interactive analyses; a production web
+server should use a maintained local database or a controlled job queue.
+
 ## Run tests
 
 ```bash
@@ -43,4 +63,3 @@ unknown characters are reported separately.
 Automatic substitutions are deliberately conservative. Extended substitutions
 are reported separately for user review because biochemical similarity does not
 guarantee equivalent ligand binding.
-

@@ -30,8 +30,7 @@ The command writes `conservation.tsv` for inspection and
 
 ## Fully automatic workflow
 
-With NCBI BLAST+ and MAFFT installed, MotifMiner can submit a remote
-ClusteredNR search, filter hits, retrieve complete protein sequences from NCBI,
+With NCBI BLAST+ and MAFFT installed, MotifMiner can submit a remote NCBI protein BLAST search, filter hits, retrieve complete protein sequences from NCBI,
 align them, and calculate binding-site conservation:
 
 ```bash

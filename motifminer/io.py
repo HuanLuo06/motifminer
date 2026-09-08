@@ -6,7 +6,8 @@ from pathlib import Path
 
 
 STANDARD_AA = frozenset("ACDEFGHIKLMNPQRSTVWY")
-MSA_SYMBOLS = STANDARD_AA | frozenset("-X?")
+AMBIGUOUS_AA = frozenset("BJZ")
+MSA_SYMBOLS = STANDARD_AA | AMBIGUOUS_AA | frozenset("-X?")
 
 
 @dataclass(frozen=True)

@@ -38,9 +38,7 @@ def read_fasta(path: str | Path, *, aligned: bool = False) -> list[SequenceRecor
         allowed = MSA_SYMBOLS if aligned else STANDARD_AA | frozenset("X?")
         invalid = sorted(set(sequence) - allowed)
         if invalid:
-            raise ValueError(
-                f"FASTA record {header!r} contains invalid symbols: {', '.join(invalid)}"
-            )
+            raise ValueError(f"FASTA record {header!r} contains invalid symbols: {', '.join(invalid)}")
         identifier = header.split()[0]
         records.append(SequenceRecord(identifier, header, sequence))
 
@@ -60,7 +58,6 @@ def read_fasta(path: str | Path, *, aligned: bool = False) -> list[SequenceRecor
                     raise ValueError("FASTA sequence appears before its first header")
                 chunks.append(line)
     finish_record()
-
     if not records:
         raise ValueError(f"No FASTA records found in {path}")
     identifiers = [record.identifier for record in records]
@@ -100,18 +97,13 @@ def read_binding_sites(path: str | Path, reference: SequenceRecord) -> list[Bind
                 raise ValueError(f"Invalid position on CSV row {row_number}") from exc
             residue = (row["residue"] or "").strip().upper()
             if position < 1 or position > len(reference.sequence):
-                raise ValueError(
-                    f"Position {position} is outside the reference sequence (length {len(reference.sequence)})"
-                )
+                raise ValueError(f"Position {position} is outside the reference sequence (length {len(reference.sequence)})")
             if residue not in STANDARD_AA:
                 raise ValueError(f"Invalid residue {residue!r} at position {position}")
             observed = reference.sequence[position - 1]
             if observed != residue:
-                raise ValueError(
-                    f"Binding-site mismatch at position {position}: supplied {residue}, reference has {observed}"
-                )
-            accepted = _parse_accepted(row.get("accepted_residues", ""), residue)
-            sites.append(BindingSite(position, residue, accepted))
+                raise ValueError(f"Binding-site mismatch at position {position}: supplied {residue}, reference has {observed}")
+            sites.append(BindingSite(position, residue, _parse_accepted(row.get("accepted_residues", ""), residue)))
     if not sites:
         raise ValueError("Binding-site CSV contains no sites")
     positions = [site.position for site in sites]
@@ -119,3 +111,27 @@ def read_binding_sites(path: str | Path, reference: SequenceRecord) -> list[Bind
         raise ValueError("Binding-site positions must be unique")
     return sorted(sites, key=lambda site: site.position)
 
+
+def locate_unique_subsequence(full: SequenceRecord, domain: SequenceRecord) -> int:
+    """Return the one-based full-protein start of domain, requiring an exact unique match."""
+    starts: list[int] = []
+    offset = 0
+    while True:
+        found = full.sequence.find(domain.sequence, offset)
+        if found < 0:
+            break
+        starts.append(found + 1)
+        offset = found + 1
+    if not starts:
+        raise ValueError("Domain query sequence does not occur in the full reference protein")
+    if len(starts) != 1:
+        raise ValueError(f"Domain query sequence occurs {len(starts)} times in the full reference; an unambiguous mapping is required")
+    return starts[0]
+
+
+def map_sites_to_domain(sites: list[BindingSite], domain_start: int, domain_length: int) -> list[BindingSite]:
+    domain_end = domain_start + domain_length - 1
+    outside = [str(site.position) for site in sites if not domain_start <= site.position <= domain_end]
+    if outside:
+        raise ValueError("Binding sites outside the domain query: " + ", ".join(outside))
+    return [BindingSite(site.position - domain_start + 1, site.residue, site.accepted_residues) for site in sites]

@@ -1,9 +1,8 @@
 # MotifMiner
 
-MotifMiner analyzes known ligand-binding positions in a full-protein multiple
-sequence alignment. Version 0.1 validates reference coordinates, maps them to
-MSA columns, reports nongap amino-acid frequencies, and calculates exact,
-automatic, extended, and user-defined grouped conservation.
+MotifMiner analyzes known ligand-binding positions in protein multiple sequence
+alignments. It can analyze a user-provided MSA, use the original remote NCBI
+workflow, or search any compatible local protein BLAST database.
 
 ## Current input
 
@@ -25,10 +24,52 @@ python -m motifminer learn \
   --output demo_results
 ```
 
-The command writes `conservation.tsv` for inspection and
-`conservation.json` for downstream software and the future web interface.
+The command writes `conservation.tsv` for inspection and `conservation.json`
+for downstream software and the future web interface.
 
-## Fully automatic workflow
+## Local BLAST workflow
+
+`motifminer local` accepts a local database prefix produced by `makeblastdb`.
+The database can contain GTDB, RefSeq, UniProt, or another protein collection;
+MotifMiner does not hard-code database locations.
+
+Domain/sensor query with canonical full-protein binding-site coordinates:
+
+```bash
+motifminer local --query-mode domain \
+  --reference kind_full.fasta \
+  --domain kind_sensor.fasta \
+  --sites kind_sites.csv \
+  --database /data/blast/gtdb_proteins \
+  --database-name GTDB \
+  --evalue 1e-5 --min-query-coverage 0.8 \
+  --min-identity 0.25 --max-identity 0.95 \
+  --threads 32 --output results/kind_gtdb
+```
+
+The domain sequence must occur exactly once in the full reference, and every
+binding site must lie inside it. MotifMiner records the full-position to
+domain-position to MSA-column conversion in `site_mapping_qc.tsv`.
+
+Full-protein query, for example against RefSeq:
+
+```bash
+motifminer local --query-mode full \
+  --reference dctb_full.fasta --sites dctb_sites.csv \
+  --database /data/blast/refseq_protein --database-name RefSeq \
+  --threads 24 --output results/dctb_refseq
+```
+
+UniProt is selected the same way by passing its local database prefix, for
+example `--database /data/blast/uniprot_sprot --database-name UniProtKB-Swiss-Prot`.
+
+Local BLAST emits aligned subject sequence data and coordinates directly. This
+allows homologous regions to be extracted even when the database was built
+without `makeblastdb -parse_seqids`. Outputs include raw and filtered BLAST
+tables, homolog regions, alignment input, final alignment, mapping/QC,
+conservation tables, and pipeline metadata.
+
+## Legacy remote workflow
 
 With NCBI BLAST+ and MAFFT installed, MotifMiner can submit a remote NCBI protein BLAST search, filter hits, retrieve complete protein sequences from NCBI,
 align them, and calculate binding-site conservation:
